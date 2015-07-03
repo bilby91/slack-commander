@@ -1,0 +1,8 @@
+your-app:
+  deploy_users:
+    - 'jack'
+    - 'bilby'
+  data:
+    config:
+      deploy_script: 'deploy.sh'
+      provider: 'shell'
