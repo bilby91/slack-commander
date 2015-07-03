@@ -12,7 +12,7 @@ set :keep_releases, 10
 
 set :temp_dir, '/tmp'
 
-set :linked_files, %W(.env)
+set :linked_files, %W(.env config/heaven.yml)
 set :linked_dirs, %w(tmp/pids tmp/sockets log)
 
 set :file_uploads, [
@@ -41,12 +41,10 @@ set :app_server_socket, "#{shared_path}/tmp/sockets/unicorn.sock"
 set :unicorn_conf, "#{current_path}/unicorn.rb"
 set :unicorn_pid, "#{current_path}/tmp/pids/unicorn.pid"
 
-namespace :deploy do
+namespace :unicorn do
 
-  task :restart do
-    on roles(:app) do
-      execute "if [ -f #{fetch(:unicorn_pid)} ]; then kill -USR2 `cat #{fetch(:unicorn_pid)}`; else cd #{current_path} && bundle exec unicorn -c #{fetch(:unicorn_conf)} -D; fi"
-    end
+  def pid
+    "`cat #{fetch(:unicorn_pid)}`"
   end
 
   task :start do
@@ -59,8 +57,19 @@ namespace :deploy do
 
   task :stop do
     on roles(:app) do
-      execute "if [ -f #{fetch(:unicorn_pid)} ]; then kill -QUIT `cat #{fetch(:unicorn_pid)}`; fi"
+      within current_path do
+        if test("[ -e #{fetch(:unicorn_pid)} ]")
+          if test("kill -0 #{pid}")
+            info "stopping unicorn..."
+            execute :kill, "-s QUIT", pid
+          else
+            info "cleaning up dead unicorn pid..."
+            execute :rm, fetch(:unicorn_pid)
+          end
+        else
+         info "unicorn is not running..."
+        end
+      end
     end
   end
-
 end
