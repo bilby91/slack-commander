@@ -4,6 +4,7 @@ gem 'sinatra'
 gem 'octokit'
 gem 'dotenv'
 gem 'unicorn'
+gem 'kgio', '2.9.2'
 
 # Capistrano
 
